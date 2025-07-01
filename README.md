@@ -117,7 +117,7 @@ src/
 ```
 
 ### Technology Stack
-- **Backend**: Python with [Lihil](https://github.com/lihil-framework/lihil) web framework
+- **Backend**: Python with [Lihil](https://github.com/raceychan/lihil) web framework
 - **Database**: SQLite with SQLAlchemy ORM
 - **Frontend**: Vanilla JavaScript with modern CSS Grid
 - **Server**: Uvicorn ASGI server
