@@ -55,9 +55,9 @@ git clone <repository-url>
 cd minesweeper
 ```
 
-2. Install dependencies:
+2. Install dependencies & run:
 ```bash
-uv sync
+make web
 ```
 
 ## Running the Game
