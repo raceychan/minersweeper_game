@@ -9,6 +9,7 @@ from starlette.responses import FileResponse, HTMLResponse
 
 from ..domain.minesweeper import MinesweeperGame
 from ..domain.model import GameState, GameStats
+from ..domain.ai_assistant import get_or_create_assistant, remove_assistant
 
 
 class FileNotFoundError(HTTPException):
@@ -59,6 +60,24 @@ class LoadGameRequest:
 @dataclass
 class CheatRequest:
     game_id: str
+
+
+@dataclass
+class SetAPIKeyRequest:
+    api_key: str
+
+
+@dataclass
+class ChatRequest:
+    game_id: str
+    message: str
+    session_id: str
+
+
+@dataclass
+class ChatResponse:
+    response: str
+    success: bool
 
 
 @dataclass
@@ -149,6 +168,7 @@ def get_game_stats(game: MinesweeperGame):
 STATIC_PATH = Path(__file__).parent / "static"
 GAMES: Dict[str, MinesweeperGame] = {}
 USER_GAMES: Dict[str, str] = {}  # Maps game_id to username
+API_KEYS: Dict[str, str] = {}  # Maps session_id to API key (in memory only)
 
 # Static file routes
 static_routes = Route("/static")
@@ -429,6 +449,66 @@ def cheat(request: CheatRequest) -> BoardResponse:
         stats=get_game_stats(game),
         game_state=game.game_state.value,
     )
+
+
+@api.sub("/set_api_key").post(to_thread=False)
+def set_api_key(request: SetAPIKeyRequest) -> dict:
+    api_key = request.api_key.strip()
+    
+    if not api_key:
+        raise HTTPException(problem_status=400, detail="API key cannot be empty")
+    
+    if not api_key.startswith("sk-"):
+        raise HTTPException(problem_status=400, detail="Invalid OpenAI API key format")
+    
+    # Generate a session ID for this API key
+    session_id = str(uuid.uuid4())
+    API_KEYS[session_id] = api_key
+    
+    return {"success": True, "session_id": session_id, "message": "API key set successfully"}
+
+
+@api.sub("/remove_api_key").post(to_thread=False)
+def remove_api_key(request: dict) -> dict:
+    session_id = request.get("session_id", "")
+    
+    if session_id in API_KEYS:
+        del API_KEYS[session_id]
+        remove_assistant(session_id)
+        return {"success": True, "message": "API key removed successfully"}
+    
+    return {"success": False, "message": "Session not found"}
+
+
+@api.sub("/chat").post()
+async def chat(request: ChatRequest) -> ChatResponse:
+    game_id = request.game_id
+    message = request.message.strip()
+    session_id = request.session_id
+    
+    if not message:
+        raise HTTPException(problem_status=400, detail="Message cannot be empty")
+    
+    if game_id not in GAMES:
+        raise GameNotFoundError()
+    
+    if session_id not in API_KEYS:
+        raise HTTPException(problem_status=400, detail="No API key found for this session")
+    
+    try:
+        game = GAMES[game_id]
+        api_key = API_KEYS[session_id]
+        
+        # Get or create AI assistant for this session
+        assistant = get_or_create_assistant(session_id, api_key)
+        
+        # Get AI response
+        response = await assistant.get_assistance(game, message)
+        
+        return ChatResponse(response=response, success=True)
+        
+    except Exception as e:
+        return ChatResponse(response=f"Error: {str(e)}", success=False)
 
 
 def create_minesweeper_app() -> Lihil:

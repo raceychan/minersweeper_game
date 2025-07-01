@@ -81,6 +81,10 @@
                         <i class="fas fa-magic"></i>
                         Cheat
                     </button>
+                    <button id="ai-chat-btn" class="ai-chat-btn">
+                        <i class="fas fa-robot"></i>
+                        AI Assistant
+                    </button>
                 </div>
             </div>
 
@@ -184,6 +188,70 @@
             </div>
             <div class="modal-footer">
                 <button class="modal-btn secondary" data-modal="load-modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Key Setup Modal -->
+    <div id="api-key-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>AI Assistant Setup</h3>
+                <button class="modal-close" data-modal="api-key-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>To use the AI Assistant, please enter your OpenAI API key:</p>
+                <label for="api-key-input">OpenAI API Key:</label>
+                <input type="password" id="api-key-input" placeholder="sk-..." maxlength="200">
+                <p class="api-key-note">Your API key is only stored in memory and never saved permanently.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="api-key-confirm-btn" class="modal-btn primary">
+                    <i class="fas fa-key"></i>
+                    Set API Key
+                </button>
+                <button class="modal-btn secondary" data-modal="api-key-modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Chat Modal -->
+    <div id="chat-modal" class="modal hidden">
+        <div class="modal-content chat-modal-content">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-robot"></i>
+                    AI Assistant
+                </h3>
+                <div class="chat-controls">
+                    <button id="clear-chat-btn" class="clear-chat-btn" title="Clear conversation">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <button id="remove-api-key-btn" class="remove-api-key-btn" title="Remove API key">
+                        <i class="fas fa-key"></i>
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <button class="modal-close" data-modal="chat-modal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body chat-modal-body">
+                <div id="chat-messages" class="chat-messages">
+                    <div class="chat-message assistant-message">
+                        <div class="message-content">
+                            <strong>AI Assistant:</strong> Hello! I'm your Minesweeper AI assistant. I can help you with strategy, suggest safe moves, and explain game mechanics. What would you like to know?
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-input-container">
+                    <input type="text" id="chat-input" placeholder="Ask me about your next move or strategy..." maxlength="500">
+                    <button id="send-chat-btn" class="send-chat-btn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>

@@ -27,11 +27,19 @@ class MinesweeperWeb {
         this.saveNameInput = document.getElementById('save-name');
         this.savedGamesList = document.getElementById('saved-games-list');
         
+        // AI Chat elements
+        this.apiKeyModal = document.getElementById('api-key-modal');
+        this.chatModal = document.getElementById('chat-modal');
+        this.apiKeyInput = document.getElementById('api-key-input');
+        this.chatInput = document.getElementById('chat-input');
+        this.chatMessages = document.getElementById('chat-messages');
+        
         this.gameId = null;
         this.gameState = 'playing';
         this.startTime = null;
         this.timerInterval = null;
         this.currentUsername = null;
+        this.aiSessionId = null;
         
         this.initializeEventListeners();
         this.showLoginSection();
@@ -82,6 +90,13 @@ class MinesweeperWeb {
         // Cheat functionality
         document.getElementById('cheat-btn').addEventListener('click', () => this.handleCheat());
         
+        // AI Chat functionality
+        document.getElementById('ai-chat-btn').addEventListener('click', () => this.showAIChat());
+        document.getElementById('api-key-confirm-btn').addEventListener('click', () => this.handleSetAPIKey());
+        document.getElementById('send-chat-btn').addEventListener('click', () => this.handleSendMessage());
+        document.getElementById('clear-chat-btn').addEventListener('click', () => this.handleClearChat());
+        document.getElementById('remove-api-key-btn').addEventListener('click', () => this.handleRemoveAPIKey());
+        
         // Modal close functionality
         document.querySelectorAll('.modal-close, .modal-btn.secondary').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -102,6 +117,16 @@ class MinesweeperWeb {
         // Save name input enter key
         this.saveNameInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') this.handleSaveGame();
+        });
+        
+        // API key input enter key
+        this.apiKeyInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.handleSetAPIKey();
+        });
+        
+        // Chat input enter key
+        this.chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.handleSendMessage();
         });
     }
     
@@ -556,6 +581,185 @@ class MinesweeperWeb {
     
     hideOverlay() {
         this.overlay.classList.add('hidden');
+    }
+    
+    // AI Assistant Methods
+    showAIChat() {
+        if (!this.aiSessionId) {
+            this.showAPIKeyModal();
+        } else {
+            this.chatModal.classList.remove('hidden');
+            this.chatInput.focus();
+        }
+    }
+    
+    showAPIKeyModal() {
+        this.apiKeyModal.classList.remove('hidden');
+        this.apiKeyInput.focus();
+    }
+    
+    async handleSetAPIKey() {
+        const apiKey = this.apiKeyInput.value.trim();
+        
+        if (!apiKey) {
+            alert('Please enter an API key');
+            return;
+        }
+        
+        if (!apiKey.startsWith('sk-')) {
+            alert('Please enter a valid OpenAI API key (starts with sk-)');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/set_api_key', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ api_key: apiKey })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                this.aiSessionId = data.session_id;
+                this.hideModal('api-key-modal');
+                this.apiKeyInput.value = '';
+                this.chatModal.classList.remove('hidden');
+                this.chatInput.focus();
+            } else {
+                const error = await response.json();
+                alert(`Failed to set API key: ${error.detail}`);
+            }
+        } catch (error) {
+            console.error('Error setting API key:', error);
+            alert('Failed to set API key');
+        }
+    }
+    
+    async handleSendMessage() {
+        const message = this.chatInput.value.trim();
+        
+        if (!message) {
+            return;
+        }
+        
+        if (!this.gameId) {
+            alert('Please start a game first');
+            return;
+        }
+        
+        if (!this.aiSessionId) {
+            alert('Please set up your API key first');
+            return;
+        }
+        
+        // Add user message to chat
+        this.addChatMessage(message, 'user');
+        this.chatInput.value = '';
+        
+        // Show loading message
+        const loadingId = this.addChatMessage('Thinking...', 'assistant', true);
+        
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    game_id: this.gameId,
+                    message: message,
+                    session_id: this.aiSessionId
+                })
+            });
+            
+            const data = await response.json();
+            
+            // Remove loading message
+            this.removeChatMessage(loadingId);
+            
+            if (data.success) {
+                this.addChatMessage(data.response, 'assistant');
+            } else {
+                this.addChatMessage(`Error: ${data.response}`, 'assistant');
+            }
+            
+        } catch (error) {
+            this.removeChatMessage(loadingId);
+            this.addChatMessage(`Error: ${error.message}`, 'assistant');
+            console.error('Chat error:', error);
+        }
+    }
+    
+    addChatMessage(message, sender, isLoading = false) {
+        const messageDiv = document.createElement('div');
+        const messageId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+        messageDiv.id = messageId;
+        messageDiv.className = `chat-message ${sender}-message`;
+        
+        if (isLoading) {
+            messageDiv.classList.add('loading');
+        }
+        
+        const content = document.createElement('div');
+        content.className = 'message-content';
+        
+        if (sender === 'user') {
+            content.innerHTML = `<strong>You:</strong> ${message}`;
+        } else {
+            content.innerHTML = `<strong>AI Assistant:</strong> ${message}`;
+        }
+        
+        messageDiv.appendChild(content);
+        this.chatMessages.appendChild(messageDiv);
+        
+        // Scroll to bottom
+        this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+        
+        return messageId;
+    }
+    
+    removeChatMessage(messageId) {
+        const messageEl = document.getElementById(messageId);
+        if (messageEl) {
+            messageEl.remove();
+        }
+    }
+    
+    handleClearChat() {
+        // Keep only the initial assistant message
+        const messages = this.chatMessages.querySelectorAll('.chat-message');
+        for (let i = 1; i < messages.length; i++) {
+            messages[i].remove();
+        }
+    }
+    
+    async handleRemoveAPIKey() {
+        if (!this.aiSessionId) {
+            return;
+        }
+        
+        if (!confirm('Remove API key from memory? You will need to enter it again to use the AI assistant.')) {
+            return;
+        }
+        
+        try {
+            await fetch('/api/remove_api_key', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ session_id: this.aiSessionId })
+            });
+            
+            this.aiSessionId = null;
+            this.hideModal('chat-modal');
+            this.handleClearChat();
+            
+        } catch (error) {
+            console.error('Error removing API key:', error);
+        }
     }
 }
 
