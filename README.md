@@ -4,10 +4,13 @@ A modern, web-based Minesweeper game built with Python, featuring user authentic
 
 ![Minesweeper Game Interface](docs/minesweeper.png)
 
+![AI Assistant Feature](docs/ai.png)
+
 ## Features
 
 - **Classic Minesweeper Gameplay** - Traditional rules with left-click to reveal, right-click to flag
 - **Modern Web Interface** - Responsive design that works on desktop and mobile
+- **AI Assistant** - Built-in AI helper that provides strategy tips, suggests safe moves, and explains game mechanics
 - **User Authentication** - Login system with personalized statistics
 - **Game Save/Load** - Save your progress and resume games later
 - **Statistics Tracking** - Track your games won, total games played, and win rate
@@ -29,6 +32,7 @@ A modern, web-based Minesweeper game built with Python, featuring user authentic
 - **Flag Counter** - Shows how many flags you've placed
 - **Difficulty Buttons** - Choose your preferred difficulty level
 - **Game Management** - New Game, Save Game, and Load Game buttons
+- **AI Assistant** - Get strategic advice, move suggestions, and game tips from the built-in AI helper
 - **Statistics** - View your total games, wins, and win rate
 
 ### Winning Strategy
