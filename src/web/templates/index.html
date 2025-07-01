@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minesweeper</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Login Section -->
+        <div id="login-section" class="login-section">
+            <div class="login-card">
+                <h2>
+                    <i class="fas fa-user"></i>
+                    Welcome to Minesweeper
+                </h2>
+                <p>Enter your username to start playing</p>
+                <div class="login-form">
+                    <input type="text" id="username-input" placeholder="Enter username" maxlength="50">
+                    <button id="login-btn" class="login-btn">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Start Playing
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Section -->
+        <div id="game-section" class="game-section hidden">
+            <header class="header">
+                <div class="user-info">
+                    <span class="welcome-text">Welcome, <span id="current-username">User</span>!</span>
+                    <button id="logout-btn" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Logout
+                    </button>
+                </div>
+                <h1 class="title">
+                    <i class="fas fa-bomb"></i>
+                    Minesweeper
+                </h1>
+                <div class="game-stats">
+                    <div class="stat">
+                        <i class="fas fa-flag"></i>
+                        <span id="flag-count">0</span>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-clock"></i>
+                        <span id="timer">000</span>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-bomb"></i>
+                        <span id="mine-count">10</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="game-controls">
+                <div class="difficulty-selector">
+                    <button class="difficulty-btn active" data-size="9" data-mines="10">Beginner</button>
+                    <button class="difficulty-btn" data-size="16" data-mines="40">Intermediate</button>
+                    <button class="difficulty-btn" data-size="22" data-mines="99">Expert</button>
+                </div>
+                <div class="game-actions">
+                    <button id="new-game-btn" class="new-game-btn">
+                        <i class="fas fa-play"></i>
+                        New Game
+                    </button>
+                    <button id="save-game-btn" class="save-game-btn">
+                        <i class="fas fa-save"></i>
+                        Save Game
+                    </button>
+                    <button id="load-game-btn" class="load-game-btn">
+                        <i class="fas fa-folder-open"></i>
+                        Load Game
+                    </button>
+                </div>
+            </div>
+
+            <!-- User Stats Section -->
+            <div class="user-stats">
+                <h3>Your Statistics</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-label">Total Games:</span>
+                        <span id="total-games">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Won Games:</span>
+                        <span id="won-games">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Win Rate:</span>
+                        <span id="win-rate">0%</span>
+                    </div>
+                </div>
+            </div>
+
+        <div class="game-board-container">
+            <div id="game-board" class="game-board"></div>
+            <div id="game-overlay" class="game-overlay hidden">
+                <div class="overlay-content">
+                    <div class="overlay-icon">
+                        <i class="fas fa-trophy" id="win-icon"></i>
+                        <i class="fas fa-bomb" id="lose-icon"></i>
+                    </div>
+                    <h2 id="overlay-title">Game Over</h2>
+                    <p id="overlay-message">Click "New Game" to play again</p>
+                    <button id="overlay-new-game" class="new-game-btn">
+                        <i class="fas fa-play"></i>
+                        New Game
+                    </button>
+                </div>
+            </div>
+        </div>
+
+            <div class="instructions">
+                <h3>How to Play</h3>
+                <div class="instruction-grid">
+                    <div class="instruction">
+                        <i class="fas fa-mouse-pointer"></i>
+                        <span>Left click to reveal cells</span>
+                    </div>
+                    <div class="instruction">
+                        <i class="fas fa-flag"></i>
+                        <span>Right click to flag mines</span>
+                    </div>
+                    <div class="instruction">
+                        <i class="fas fa-eye"></i>
+                        <span>Numbers show adjacent mines</span>
+                    </div>
+                    <div class="instruction">
+                        <i class="fas fa-target"></i>
+                        <span>Find all mines to win!</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Game Modal -->
+    <div id="save-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Save Game</h3>
+                <button class="modal-close" data-modal="save-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <label for="save-name">Game Name:</label>
+                <input type="text" id="save-name" placeholder="Enter game name" maxlength="50">
+            </div>
+            <div class="modal-footer">
+                <button id="save-confirm-btn" class="modal-btn primary">
+                    <i class="fas fa-save"></i>
+                    Save
+                </button>
+                <button class="modal-btn secondary" data-modal="save-modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load Game Modal -->
+    <div id="load-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Load Game</h3>
+                <button class="modal-close" data-modal="load-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="saved-games-list" class="saved-games-list">
+                    <p class="no-saves">No saved games found</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" data-modal="load-modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/game.js"></script>
+</body>
+</html>
