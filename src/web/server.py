@@ -57,6 +57,11 @@ class LoadGameRequest:
 
 
 @dataclass
+class CheatRequest:
+    game_id: str
+
+
+@dataclass
 class UserStatsResponse:
     total_games: int
     won_games: int
@@ -401,6 +406,29 @@ def delete_saved_game(request: dict) -> dict:
         return {"success": True, "message": f"Game '{game_name}' deleted successfully"}
     else:
         raise HTTPException(problem_status=404, detail="Saved game not found")
+
+
+@api.sub("/cheat").post(to_thread=False)
+def cheat(request: CheatRequest) -> BoardResponse:
+    game_id = request.game_id
+
+    if game_id not in GAMES:
+        raise GameNotFoundError()
+
+    game = GAMES[game_id]
+    result = game.cheat()
+
+    if result is None:
+        raise HTTPException(problem_status=400, detail="No safe cells available or game not in progress")
+
+    revealed_row, revealed_col = result
+    board_data = get_board_data(game)
+
+    return BoardResponse(
+        board=board_data,
+        stats=get_game_stats(game),
+        game_state=game.game_state.value,
+    )
 
 
 def create_minesweeper_app() -> Lihil:

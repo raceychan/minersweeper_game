@@ -79,6 +79,9 @@ class MinesweeperWeb {
         document.getElementById('load-game-btn').addEventListener('click', () => this.showLoadModal());
         document.getElementById('save-confirm-btn').addEventListener('click', () => this.handleSaveGame());
         
+        // Cheat functionality
+        document.getElementById('cheat-btn').addEventListener('click', () => this.handleCheat());
+        
         // Modal close functionality
         document.querySelectorAll('.modal-close, .modal-btn.secondary').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -432,6 +435,50 @@ class MinesweeperWeb {
             
         } catch (error) {
             console.error('Error toggling flag:', error);
+        }
+    }
+    
+    async handleCheat() {
+        if (this.gameState !== 'playing') {
+            alert('No active game to cheat in');
+            return;
+        }
+        
+        if (!this.gameId) {
+            alert('No game in progress');
+            return;
+        }
+        
+        if (!this.startTime) {
+            this.startTimer();
+        }
+        
+        try {
+            const response = await fetch('/api/cheat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ game_id: this.gameId })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                this.updateBoard(data.board);
+                this.updateStats(data.stats);
+                
+                if (data.game_state !== 'playing') {
+                    this.endGame(data.game_state);
+                    await this.loadUserStats();
+                }
+            } else {
+                const error = await response.json();
+                alert(`Cheat failed: ${error.detail}`);
+            }
+            
+        } catch (error) {
+            console.error('Error using cheat:', error);
+            alert('Failed to use cheat');
         }
     }
     

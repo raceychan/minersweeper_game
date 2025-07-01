@@ -471,6 +471,27 @@ body {
     box-shadow: 0 4px 15px rgba(111, 66, 193, 0.3);
 }
 
+.cheat-btn {
+    background: linear-gradient(135deg, #fd7e14, #e06300);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    box-shadow: 0 4px 15px rgba(253, 126, 20, 0.3);
+}
+
+.cheat-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(253, 126, 20, 0.4);
+}
+
 /* User Stats */
 .user-stats {
     background: #f8f9fa;

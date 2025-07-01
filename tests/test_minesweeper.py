@@ -100,3 +100,24 @@ def test_cannot_flag_revealed_cell():
     
     # Try to flag the revealed cell - should fail
     assert game.toggle_flag(5, 5) == False
+
+
+def test_cheat_functionality():
+    game = MinesweeperGame(5, 0.2)
+    
+    # Test cheat on new game (before first click)
+    initial_revealed = game.revealed_count
+    result = game.cheat()
+    
+    # Should return coordinates and reveal at least one cell
+    assert result is not None
+    assert len(result) == 2  # (row, col)
+    assert game.revealed_count > initial_revealed
+    assert game.first_click == False  # Should place mines
+    
+    # Test cheat after first click
+    prev_revealed = game.revealed_count
+    result2 = game.cheat()
+    
+    if result2 is not None:  # Only if there are safe cells left
+        assert game.revealed_count > prev_revealed

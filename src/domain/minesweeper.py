@@ -319,3 +319,54 @@ class MinesweeperGame:
             return None
 
         return self.db.get_user_stats(self.user.id)
+
+    def cheat(self) -> Tuple[int, int] | None:
+        """Reveal a safe cell (guaranteed not to be a mine).
+        
+        Returns:
+            Tuple of (row, col) of the revealed cell, or None if no safe cells available
+        """
+        if self.game_state != GameState.PLAYING:
+            return None
+
+        # Find all hidden cells that are not mines
+        safe_hidden_cells = []
+        for row in range(self.size):
+            for col in range(self.size):
+                cell = self.board[row][col]
+                if cell.state == CellState.HIDDEN and not cell.is_mine:
+                    safe_hidden_cells.append((row, col))
+
+        if not safe_hidden_cells:
+            return None
+
+        # If this is the first click, place mines first
+        if self.first_click:
+            # Choose a random safe cell and place mines excluding that cell
+            row, col = random.choice(safe_hidden_cells)
+            self._place_mines(row, col)
+            self.first_click = False
+            
+            # Update safe_hidden_cells after placing mines
+            safe_hidden_cells = []
+            for r in range(self.size):
+                for c in range(self.size):
+                    cell = self.board[r][c]
+                    if cell.state == CellState.HIDDEN and not cell.is_mine:
+                        safe_hidden_cells.append((r, c))
+
+        if not safe_hidden_cells:
+            return None
+
+        # Choose a random safe cell to reveal
+        row, col = random.choice(safe_hidden_cells)
+        
+        # Reveal the cell using flood fill
+        self._reveal_cells_flood_fill(row, col)
+        self._check_win_condition()
+        self._update_session_stats()
+
+        if self.game_state == GameState.WON:
+            self._finish_game_session()
+
+        return (row, col)
